@@ -100,6 +100,11 @@ inputs:
     platforms: *platforms
     outputs: *outputs
     command: *filebeat_command
+  - name: benchmark
+    description: "Benchmark Input"
+    platforms: *platforms
+    outputs: *outputs
+    command: *filebeat_command
   - name: cel
     description: "Common Expression Language Input"
     platforms: *platforms
@@ -243,8 +248,10 @@ inputs:
     platforms: *platforms
     outputs: *outputs
     command: *filebeat_command
-  - name: websocket
-    description: "Websocket"
+  - name: streaming
+    aliases:
+      - websocket
+    description: "Streaming"
     platforms: *platforms
     outputs: *outputs
     command: *filebeat_command
