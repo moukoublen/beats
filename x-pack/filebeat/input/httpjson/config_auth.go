@@ -20,11 +20,13 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/x-pack/libbeat/common/aws"
 )
 
 type authConfig struct {
 	Basic  *basicAuthConfig `config:"basic"`
 	OAuth2 *oAuth2Config    `config:"oauth2"`
+	AWS    *aws.InputConfig `config:"aws"`
 }
 
 func (c authConfig) Validate() error {

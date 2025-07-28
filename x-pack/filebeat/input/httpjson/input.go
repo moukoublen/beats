@@ -37,6 +37,7 @@ import (
 	"github.com/elastic/beats/v7/x-pack/filebeat/input/internal/httplog"
 	"github.com/elastic/beats/v7/x-pack/filebeat/input/internal/httpmon"
 	"github.com/elastic/beats/v7/x-pack/filebeat/input/internal/private"
+	"github.com/elastic/beats/v7/x-pack/libbeat/common/aws"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -291,7 +292,23 @@ func newHTTPClient(ctx context.Context, authCfg *authConfig, requestCfg *request
 		client *http.Client
 		err    error
 	)
-	if authCfg.OAuth2.isEnabled() {
+	if authCfg.AWS.IsEnabled() {
+		cnf, err := aws.InitializeAWSConfig(authCfg.AWS.ConfigAWS)
+		if err != nil {
+			log.Errorw("aws auth method: initialize of aws config failed", "error", err)
+			return nil, err
+		}
+
+		client, err = newNetHTTPClient(ctx, requestCfg, log, reg)
+		if err != nil {
+			log.Errorw("aws auth method: creation of initial http client failed", "error", err)
+			return nil, err
+		}
+
+		log.Infof("aws auth method: creating signer for region: %s and service: %s", cnf.Region, authCfg.AWS.ServiceName)
+		signer := aws.NewSignerTransport(client.Transport, cnf.Credentials, cnf.Region, authCfg.AWS.ServiceName)
+		client.Transport = signer
+	} else if authCfg.OAuth2.isEnabled() {
 		client = authCfg.OAuth2.prepared
 		if client == nil {
 			client, err = newNetHTTPClient(ctx, requestCfg, log, reg)
